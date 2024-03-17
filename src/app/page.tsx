@@ -1,50 +1,32 @@
 'use client'
 
-import { useState } from "react";
+import { ReactNode, useState } from "react";
 import InputBtn from "./components/inputBtn";
 import InputText from "./components/inputText";
+import WeatherRoot from "./components/weather/weatherRoot";
 
 export default function Home() {
 
-  const API_KEY = "6bd22387a686de37ec655be11cd73256";
+  const API_KEY = "d564a4f5cc27424696a172629241703";
   const [inputCity, setInputCity] = useState("");
-
+  const [weatherView, setWeatherView] = useState<ReactNode>();
+  let cityData: Object;
 
   function OnClickConfirm() {
-
-    const cityCords: any = [];
-    const cityInfo: any = [];
-
-    async function GetData() {  
-
-      async function GetWeatherData(lat: any, lon: any) {
-        const res = await fetch(`https://api.openweathermap.org/data/3.0/onecall?lat=${lat}&lon=${lon}&appid=${API_KEY}`);
-        const data = await res.json();
-  
-        console.log(data);
-      }
-
+    async function GetData() {
       try {
         const cityFS = inputCity.toLowerCase().trim();
-        const res = await fetch(`http://api.openweathermap.org/geo/1.0/direct?q=${cityFS}&limit=5&appid=${API_KEY}`);
-        const data = await res.json();
-
-        cityCords[0] = data[0].lat;
-        cityCords[1] = data[0].lon;
-        cityInfo[0] = data[0].name;
-        cityInfo[1] = data[0].state;
-
-        GetWeatherData(cityCords[0], cityCords[1]);
-
-        console.log(cityCords);
-        console.log(cityInfo);
+        const res = await fetch(`https://api.weatherapi.com/v1/current.json?q=${cityFS}&key=${API_KEY}&lang=pt`);
+        cityData = await res.json();
+        setWeatherView(<WeatherRoot city={cityData.location.name} state={cityData.location.region} temp={cityData.current.temp_c} icon={cityData.current.condition.icon}/>);
+        return cityData;
       } catch (err) {
         console.log(err);
         alert("Insira uma cidade válida!")
       }
     }
-
     GetData();
+    
   }
 
   return (
@@ -59,6 +41,9 @@ export default function Home() {
 
       <InputText placeholder="Digite uma cidade" value={inputCity} onChange={(e: any)=>setInputCity(e.target.value)}/>
       <InputBtn value="Confirmar" onClick={OnClickConfirm}/>
+
+      {weatherView}
+      
     </div>
   );
 }
